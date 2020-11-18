@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from psbody.mesh import Mesh
 import numpy as np
 
-def eval_reconstruction(model, test_loader, device, meshdata, out_dir, mesh, numz):
+def eval_reconstruction(model, test_loader, device, meshdata, mesh):
     model.eval()
 
     errors = []
