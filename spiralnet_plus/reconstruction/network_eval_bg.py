@@ -21,7 +21,7 @@ def eval_reconstruction(model, test_loader, device, meshdata, mesh):
         for i, data in enumerate(test_loader):
             if i % 4 == 0:
                 x = data.x.to(device)
-                pred, gender, bz,gz, z,_,bmi = model(data)
+                pred = model(data)
                 imageid1 = int(data.pos[:,0].cpu().numpy())
                 #print(imageid1)
                 imageid2 = int(data.pos[:,1].cpu().numpy())
