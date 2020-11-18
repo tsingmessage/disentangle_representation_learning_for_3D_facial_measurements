@@ -61,43 +61,15 @@ def train(model, optimizer, loader, device,numz):
     total_num = 0
     for data in loader:
         optimizer.zero_grad()
-        gender_t = data.y.to(device).float()
-        bmi_t = data.pos[:,0].to(device).float()
-        wei_t = data.pos[:,1].to(device).float()
-        hei_t = data.pos[:,2].to(device).float()
         x = data.x.to(device)
         out, gender, bz, gz,wz,hz, z ,_,bmi,wei,hei= model(data)
-        criterion = torch.nn.BCELoss()
-        bmi = torch.squeeze(bmi)
-        wei = torch.squeeze(wei)
-        hei = torch.squeeze(hei)
-        #print(z.size())
-        #halfz=z[:,0:32]
-        #print(halfz.size())
-        #print(bz.size())
-        #exit(0)
-        loss = F.l1_loss(out, x, reduction='mean') + 0.35*F.mse_loss(gender, gender_t) +  1*F.mse_loss(z[:,int(numz*0.75):numz], gz)+ 0.35*F.mse_loss(bmi_t, bmi)+ 1*F.mse_loss(z[:,0:int(numz*0.25)], bz) + 0.35*F.mse_loss(wei_t, wei)+ 1*F.mse_loss(z[:,int(numz*0.25):int(numz*0.50)], wz)+ 0.35*F.mse_loss(hei_t, hei)+ 1*F.mse_loss(z[:,int(numz*0.50):int(numz*0.75)], hz) 
+        loss = F.l1_loss(out, x, reduction='mean') 
         loss.backward()
-        loss_rec = F.mse_loss(gender, gender_t)
-        total_loss_r += loss_rec.item()
         total_loss += loss.item()
         optimizer.step()
 
-        for i in range(len(bmi)):
-            total_num = total_num + 1
-            dis = abs(bmi[i] - bmi_t[i])
-            if dis < 0.1:
-                acc_num = acc_num + 1
-            dis = abs(gender[i] - gender_t[i])
-            if dis < 0.5:
-                acc_g = acc_g + 1
-        
 
-    print('train_acc b:', acc_num/total_num)
-    print('train_acc g:', acc_g/total_num)
-    #return total_loss / len(loader), acc_num / total_num
-
-    return total_loss / len(loader), total_loss_r / len(loader)
+    return total_loss / len(loader)
 
 
 
@@ -132,107 +104,16 @@ def mscatter(x,y,ax=None, m=None, **kw):
 
 def test(model, loader, device, numz):
     model.eval()
-
-    total_loss,total_loss_r = 0,0
-    latent_all = []
-    latent_all2 = []
-    label_all = []
-    label_all2 = []
-    gender_all = []
-    latent_all = np.array(latent_all)
-    marker_list = []
-    acc_count = 0
-    acc_g = 0
+    total_loss = 0
+        
     with torch.no_grad():
         for i, data in enumerate(loader):
             pred, gender,bz,gz ,wz,hz,z, gender_z,bmi,wei,hei= model(data)
-            gender_t = data.y.to(device).float()
-            bmi_t = data.pos[:,0].to(device).float()
-            wei_t = data.pos[:,1].to(device).float()
-            hei_t = data.pos[:,2].to(device).float()
-            #len_batch,_ = gender_t.size()
-            bmi_t = torch.reshape(bmi_t,(1,1))
-            wei_t = torch.reshape(wei_t,(1,1))
-            hei_t = torch.reshape(hei_t,(1,1))
-            #print(bmi_t.size())
-            #print(bmi.size())
-            #print(data.y)
-            if int(gender_t) == 0:
-                marker_list = np.append(marker_list, "o")
-            else:
-                marker_list = np.append(marker_list, '+')
             x = data.x.to(device)
-            criterion = torch.nn.BCELoss()
-            loss = F.l1_loss(pred, x, reduction='mean') + 0.35*F.mse_loss(gender, gender_t) +  1*F.mse_loss(z[:,int(numz*0.75):numz], gz)+ 0.35*F.mse_loss(bmi_t, bmi)+ 1*F.mse_loss(z[:,0:int(numz*0.25)], bz) + 0.35*F.mse_loss(wei_t, wei)+ 1*F.mse_loss(z[:,int(numz*0.25):int(numz*0.50)], wz)+ 0.35*F.mse_loss(hei_t, hei)+ 1*F.mse_loss(z[:,int(numz*0.50):int(numz*0.75)], hz) 
-            loss_rec = F.mse_loss(gender, gender_t)
-            total_loss_r += loss_rec.item()
+            loss = F.l1_loss(pred, x, reduction='mean')
             total_loss += loss.item()
-            if abs(bmi_t - bmi) < 0.1:
-                acc_count = acc_count + 1
-            if abs(gender_t - gender) < 0.5:
-                acc_g = acc_g + 1
-            latent_out = z.detach().cpu().numpy()
-            label_y = bmi_t
-            label_y2 = gender_t
-            label_y = torch.squeeze(label_y)
-            label_y2 = torch.squeeze(label_y2)
-            gender_out = torch.squeeze(bmi)
-            gender_out = gender_out.detach().cpu().numpy()
-            label_out = label_y.detach().cpu().numpy()
-            label_out2 = label_y2.detach().cpu().numpy()
-            gender_all= np.append(gender_all, gender_out)
-            label_all= np.append(label_all, label_out)
-            label_all2= np.append(label_all2, label_out2)
-            latent_all= np.append(latent_all, latent_out)
-
-    sns.set(context="paper", style="white")
-    reducer = umap.UMAP(random_state=42)
-    latent_all = np.array(latent_all)
-    
-    label_all = np.array(label_all)
-    latent_all = latent_all.reshape((np.size(label_all),numz))
-    latent_b = latent_all[:,0:int(numz*0.25)]
-    latent_g = latent_all[:,int(numz*0.75):numz]
-    #print(np.size(latent_all))
-    #print(np.size(label_all))
-    embedding = reducer.fit_transform(latent_b)
-    fig, ax = plt.subplots(figsize=(12, 10))
-    scatter = mscatter(embedding[:, 0], embedding[:, 1], m=marker_list, ax=ax, c=10*label_all,cmap="Spectral")
-    #plt.scatter(embedding[:, 0], embedding[:, 1],c=10*label_all, cmap="Spectral")
-    #plt.setp(ax, xticks=[], yticks=[])
-    #plt.title("latent Z data with dimension 64 embedded into 2 dimensions by UMAP", fontsize=18)
-     
-
-    #cbar = plt.colorbar(boundaries=np.arange(11)-0.5)
-    #cbar.set_ticks(np.arange(10))
-    #cbar.set_ticklabels(classes)
-    plt.savefig("bmi.png") 
-    plt.close()
-
-    embedding = reducer.fit_transform(latent_g)
-    fig, ax = plt.subplots(figsize=(12, 10))
-    plt.scatter(embedding[:, 0], embedding[:, 1],c=1*label_all2, cmap="Spectral")
-    plt.setp(ax, xticks=[], yticks=[])
-    plt.title("latent Z data with dimension 64 embedded into 2 dimensions by UMAP", fontsize=18)
-    plt.savefig("gender.png") 
-    plt.close()
-
-
-    
-    index_sort = np.argsort(label_all)
-    sorted_label = np.sort(label_all)
-    sorted_gender = gender_all[index_sort]
-
-    n = np.arange(1,i+2)
-    plt.figure()
-    plt.plot(sorted_label-sorted_gender)
-    plt.ylim(-0.6, 0.6)  
-    plt.savefig("regression.png")
-    plt.close()
-    print('test_acc b:', acc_count/np.size(label_all))
-    print('test_acc g:', acc_g/np.size(label_all))
-    #return total_loss / len(loader), acc_count/np.size(label_all)
-    return total_loss / len(loader), total_loss_r / len(loader)
+ 
+    return total_loss / len(loader)
 
 
 def eval_error(model, test_loader, device, meshdata, out_dir, mesh):
