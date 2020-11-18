@@ -71,8 +71,8 @@ cudnn.deterministic = True
 # load dataset
 template_fp = osp.join(args.data_fp, 'template', 'template.ply')
 normalize_transform = Normalize()
-data_dir = '/storage/Research/Vito/dense_9_aligned/'
-#data_dir = '/storage/Research/Vito/ply_dense_aligned/'
+data_dir = '../'
+
 dataset = ComaDataset(data_dir, dtype='train', split='sliced', split_term='sliced', pre_transform=normalize_transform)
 dataset_test = ComaDataset(data_dir, dtype='test', split='sliced', split_term='sliced', pre_transform=normalize_transform)
 
