@@ -83,7 +83,8 @@ class ComaDataset(InMemoryDataset):
 
             label_y = 0
             label_pos = torch.Tensor([math.floor(int(name_without_path)/1000000), int(name_without_path)%1000000])
-
+            
+            mesh = Mesh(filename=data_file)
             vector = [1, 0.95, 1.05]
             for i_aug in range(1):
                 idx = idx + 1
