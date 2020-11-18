@@ -71,78 +71,21 @@ class ComaDataset(InMemoryDataset):
         idx = 0
         label_y = 0
         min_num = 99999999
-        f = open('male.txt','r')
-        male_list = f.readlines()
-        f = open('female.txt','r')
+        
         count_1 = 0
         count_2 = 0
-        female_list = f.readlines()
-        f = open('filter_list.txt','r')
-        filter_list = f.readlines()
-        data_dir = '/storage/Research/Vito/dense_9_aligned/'
-        #meshviewer = MeshViewers(shape=(1, 2))
-        df = pd.read_excel(r'final.xlsx', sheet_name = 0 )
-        d_imgid = np.array(df['IMAGEID'].values)
-        d_idc = np.array(df['IDC'].values)
-        d_idcg = np.array(df['IDCI'].values)
-        d_gender = np.array(df['GENDER'].values)
-        d_idcb = np.array(df['IDCB'].values)
-        d_bmi = np.array(df['BMI'].values)
-        d_height = np.array(df['HEIGHT'].values)
-        d_weight = np.array(df['WEIGHT'].values)
-        min_bmi = 11.7
-        max_bmi = 35.41
-        max_weight = 88.4
-        min_weight = 18.8
-        min_height = 116.9
-        max_height = 168.8
-
-        #meshtemp = Mesh(filename = '/home/lau/env/code/python/VAE_mesh/spiralnet_plus/data/CoMA/template/template.ply')
+        
+        
+        data_dir = self.root_dir
         for i_total, data_file in tqdm(enumerate(self.data_file)):
             name_without_path = data_file.replace(data_dir, '')
-            name_filter = name_without_path + '\n'
-            if not name_filter in filter_list:
-                continue
             name_without_path = name_without_path.replace('.ply', '')
-            
-            index_imgid = np.argwhere(d_imgid==int(name_without_path))
-            if len(index_imgid) == 0:
-                continue # no data from table are found    
-            index_idc = d_idc[index_imgid]
-            index_gender = np.argwhere(d_idcg==int(index_idc[0]))
-            index_bmi = np.argwhere(d_idcb==int(index_idc[0]))
-            if len(index_gender) == 0 or len(index_bmi) == 0:
-                continue # no data from table are found    
-            else:
-                label_bmi = float(d_bmi[index_bmi])
-                label_weight = float(d_weight[index_bmi])
-                label_height = float(d_height[index_bmi])
-                #print(label_bmi)
-                #print(label_y)
-                if int(label_bmi) == 999 or int(label_weight) == 999 or int(label_height) == 999:
-                    continue
-                label_bmi = 1*(label_bmi - min_bmi) / (max_bmi - min_bmi)
-                label_weight = 1*(label_weight - min_weight) / (max_weight - min_weight)
-                label_height = 1*(label_height - min_height) / (max_height - min_height)               
-                label_g = int(d_gender[index_gender])
-                #print(label_y)
-                if label_g == 999:
-                    continue
-                label_y = label_g - 1
-                label_pos = torch.Tensor([label_bmi, label_weight, label_height])
-                #label_pos = torch.Tensor(label_bmi)
-                count_1 = count_1 + 1
-                #print(label_y)
-                #label_y = [label_g, label_bmi]
-            mesh = Mesh(filename=data_file)
+
+            label_y = 0
+            label_pos = torch.Tensor([math.floor(int(name_without_path)/1000000), int(name_without_path)%1000000])
+
             vector = [1, 0.95, 1.05]
             for i_aug in range(1):
-                #if label_y == 0 and i_aug == 1:
-                #    continue
-                #if label_y ==0 :
-                #    count_1 = count_1 + 1
-                #else:
-                #    count_2 = count_2 + 1
                 idx = idx + 1
                 mesh_verts = torch.Tensor(mesh.v*vector[i_aug])
                 adjacency = get_vert_connectivity(mesh.v, mesh.f).tocoo()
