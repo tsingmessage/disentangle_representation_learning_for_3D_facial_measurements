@@ -4,36 +4,6 @@ import torch
 import torch.nn.functional as F
 from psbody.mesh import Mesh
 import numpy as np
-import matplotlib.pyplot as plt
-
-classes = [
-    'T-shirt/top',
-    'Trouser',
-    'Pullover',
-    'Dress',
-    'Coat',
-    'Sandal',
-    'Shirt',
-    'Sneaker',
-    'Bag',
-    'Ankle boot']
-
-def mscatter(x,y,ax=None, m=None, **kw):
-    import matplotlib.markers as mmarkers
-    if not ax: ax=plt.gca()
-    sc = ax.scatter(x,y,**kw)
-    if (m is not None) and (len(m)==len(x)):
-        paths = []
-        for marker in m:
-            if isinstance(marker, mmarkers.MarkerStyle):
-                marker_obj = marker
-            else:
-                marker_obj = mmarkers.MarkerStyle(marker)
-            path = marker_obj.get_path().transformed(
-                        marker_obj.get_transform())
-            paths.append(path)
-        sc.set_paths(paths)
-    return sc
 
 def eval_reconstruction(model, test_loader, device, meshdata, out_dir, mesh, numz):
     model.eval()
