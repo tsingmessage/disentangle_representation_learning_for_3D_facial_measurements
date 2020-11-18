@@ -4,8 +4,6 @@ import torch
 import torch.nn.functional as F
 from psbody.mesh import Mesh
 import numpy as np
-import seaborn as sns
-import umap
 import matplotlib.pyplot as plt
 
 classes = [
