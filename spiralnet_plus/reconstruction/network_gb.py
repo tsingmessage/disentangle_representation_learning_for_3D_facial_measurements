@@ -190,19 +190,6 @@ class AE(nn.Module):
         return x
 
     def forward(self, data, *indices):
-        x = data.x.to(self.device)
-        gender_t = data.y.to(self.device).float()
-        bmi_t = data.pos[:,0].to(self.device).float()
-        weight_t = data.pos[:,1].to(self.device).float()
-        height_t = data.pos[:,2].to(self.device).float()
-        len_batch,_ = gender_t.size()
-        bmi_t = torch.reshape(bmi_t,(len_batch,1))
-        weight_t = torch.reshape(weight_t,(len_batch,1))
-        height_t = torch.reshape(height_t,(len_batch,1))
         z, gender,gender_z,bmi,wei,hei = self.encoder(x)
         out = self.decoder(z)
-        bz = self.latent_generator_b(bmi_t)
-        gz = self.latent_generator_g(gender_t)
-        wz = self.latent_generator_w(weight_t)
-        hz = self.latent_generator_h(height_t)
-        return out, gender , bz,gz,wz,hz, z,gender_z,bmi,wei,hei
+        return out
