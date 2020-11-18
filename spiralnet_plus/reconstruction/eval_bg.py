@@ -10,7 +10,7 @@ from psbody.mesh import Mesh
 from data import ComaDataset
 from transform import Normalize
 from network_gb import AE
-from network_eval_bg import eval_error, test
+from network_eval_bg import eval_reconstruction
 from dataloader import DataLoader
 import utils
 import writer
@@ -142,5 +142,4 @@ scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
 
 
 mesh = Mesh(filename=template_fp)
-test(model, test_loader, device, args.latent_channels)
-#eval_error(model, test2_loader, device, dataset_test, args.out_dir, mesh, args.latent_channels)
+eval_reconstruction(model, test_loader, device, dataset_test, mesh)
